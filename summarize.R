@@ -14,17 +14,33 @@
 library(here)
 library(tidyverse)
 
-hawk <- read_table(
-  "data/MILLER_20260214_054800_HawkEars.txt",
-  col_names = c("start_time", "end_time", "code_confidence")
-)
 
-hawk <- hawk |> separate_wider_delim(code_confidence,
+# Input multiple files ----------------------------------------------------
+
+files <- fs::dir_ls(path = "data", glob = "*.txt")
+
+hawk_data <- read_tsv(
+  files, 
+  id = "path",
+  col_names = c( # "path" column name added automatically)
+    "start_time",
+    "end_time",
+    "code_confidence"
+  ))
+
+hawk_data
+
+# hawk <- read_tsv(
+#   "data/MILLER_20260214_054800_HawkEars.txt",
+#   col_names = c("start_time", "end_time", "code_confidence")
+# )
+
+hawk_data <- hawk_data |> separate_wider_delim(code_confidence,
   names = c("sp_code", "confidence"),
   delim = ";"
 )
 
-
+hawk_data
 hawk |> 
   group_by(sp_code) |> 
   summarise(
@@ -33,6 +49,3 @@ hawk |>
     N = n())
 
 
-hawk |>   count(sp_code)
-
-hawk
