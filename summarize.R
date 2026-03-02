@@ -28,20 +28,47 @@ hawk_data <- read_tsv(
     "code_confidence"
   ))
 
-hawk_data
 
-# hawk <- read_tsv(
-#   "data/MILLER_20260214_054800_HawkEars.txt",
-#   col_names = c("start_time", "end_time", "code_confidence")
-# )
+# Parse file name ---------------------------------------------------------
+#
+# Parse imported file names for recorder name, date and time, for possible
+# grouping. Remove the "hawkears.txt" suffix.
+
+hawk_data <- hawk_data  |> 
+  separate_wider_delim(
+    path, 
+    delim = "_",
+    names = c(
+      "recorder",
+      "date",
+      "time",
+      "delete"
+    )) |> 
+  select(-delete)
+
+# Delete "data/" from the recorder name to get just the recorder name
+
+hawk_data <- hawk_data |> 
+  separate_wider_delim(
+    recorder,
+    delim = "/",
+    names = c(
+      "delete",
+      "recorder"
+    )
+  ) |> 
+  select(-delete)
+
 
 hawk_data <- hawk_data |> separate_wider_delim(code_confidence,
   names = c("sp_code", "confidence"),
   delim = ";"
 )
 
-hawk_data
-hawk |> 
+
+
+
+hawk_data |> 
   group_by(sp_code) |> 
   summarise(
     min_conf = min(confidence),
