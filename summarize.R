@@ -15,8 +15,9 @@ library(here)
 library(tidyverse)
 
 
-# Input multiple files ----------------------------------------------------
+# File inputs -------------------------------------------------------------
 
+# Import data files
 files <- fs::dir_ls(path = "data", glob = "*.txt")
 
 hawk_data <- read_tsv(
@@ -27,6 +28,16 @@ hawk_data <- read_tsv(
     "end_time",
     "code_confidence"
   ))
+
+# Import species codes
+
+spp_codes <- read_delim(
+  "data/classes.txt",
+  delim = ",",
+  col_names = c("species", "sp_code"),
+  comment = "#")
+
+
 
 
 # Parse file name ---------------------------------------------------------
@@ -74,12 +85,16 @@ fred |>
 # strptime(fred$date_time, format = "%Y%m%d%H%M%S", tz = "America/Chicago")
 
 
-hawk_data |> 
-  group_by(sp_code) |> 
+hawk_summary <- hawk_data |> 
+  group_by(recorder, sp_code) |> 
   summarise(
     min_conf = min(confidence),
     max_conf = max(confidence),
-    N = n())
+    N = n(),
+    .groups = "keep")
+
+
+left_join(hawk_summary, spp_codes, by = "sp_code")
 
 hawk_data |> 
   mutate(date = ymd(date))
