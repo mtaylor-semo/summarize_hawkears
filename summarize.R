@@ -93,8 +93,8 @@ hawk_summary <- hawk_data |>
     N = n(),
     .groups = "keep")
 
-
-left_join(hawk_summary, spp_codes, by = "sp_code")
+# Add species names to summary file
+hawk_summary <- left_join(hawk_summary, spp_codes, by = "sp_code")
 
 hawk_data |> 
   mutate(date = ymd(date))
