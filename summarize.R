@@ -65,7 +65,13 @@ hawk_data <- hawk_data |> separate_wider_delim(code_confidence,
   delim = ";"
 )
 
+fred <- hawk_data |> 
+  unite(date_time, c("date", "time"), sep = "")
 
+fred |> 
+  mutate(freddy = ymd_hms(date_time, tz = "America/Chicago"))
+
+# strptime(fred$date_time, format = "%Y%m%d%H%M%S", tz = "America/Chicago")
 
 
 hawk_data |> 
@@ -75,4 +81,15 @@ hawk_data |>
     max_conf = max(confidence),
     N = n())
 
+hawk_data |> 
+  mutate(date = ymd(date))
+
+strptime(hawk_data$time, format = "%H%M%S")
+
+x <- "20260225054800"
+
+strptime(x, format = "%Y%m%d%H%M%S")
+
+
+hawk
 
