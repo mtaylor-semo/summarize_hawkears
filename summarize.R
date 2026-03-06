@@ -18,7 +18,7 @@ library(tidyverse)
 # File inputs -------------------------------------------------------------
 
 # Import data files
-files <- fs::dir_ls(path = "data", glob = "*.txt")
+files <- fs::dir_ls(path = "data", glob = "*HawkEars.txt")
 
 hawk_data <- read_tsv(
   files, 
