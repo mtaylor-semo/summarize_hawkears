@@ -79,7 +79,7 @@ hawk_data <- hawk_data |> separate_wider_delim(code_confidence,
 fred <- hawk_data |> 
   unite(date_time, c("date", "time"), sep = "")
 
-fred |> 
+x <-  fred |> 
   mutate(freddy = ymd_hms(date_time, tz = "America/Chicago"))
 
 # strptime(fred$date_time, format = "%Y%m%d%H%M%S", tz = "America/Chicago")
