@@ -20,7 +20,7 @@ library(tidyverse)
 # Import data files
 files <- fs::dir_ls(path = "data", glob = "*HawkEars.txt")
 
-hawk_data <- read_tsv(
+tmp_data <- read_tsv(
   files, 
   id = "path",
   col_names = c( # "path" column name added automatically)
@@ -45,21 +45,21 @@ spp_codes <- read_delim(
 # Parse imported file names for recorder name, date and time, for possible
 # grouping. Remove the "hawkears.txt" suffix.
 
-hawk_data <- hawk_data  |> 
+tmp_data <- tmp_data  |> 
   separate_wider_delim(
     path, 
     delim = "_",
     names = c(
       "recorder",
       "date",
-      "time",
+      "file_start_time",
       "delete"
     )) |> 
   select(-delete)
 
 # Delete "data/" from the recorder name to get just the recorder name
 
-hawk_data <- hawk_data |> 
+tmp_data <- tmp_data |> 
   separate_wider_delim(
     recorder,
     delim = "/",
@@ -70,19 +70,29 @@ hawk_data <- hawk_data |>
   ) |> 
   select(-delete)
 
-
-hawk_data <- hawk_data |> separate_wider_delim(code_confidence,
+# Separate the species code from the confidence value
+tmp_data <- tmp_data |> separate_wider_delim(code_confidence,
   names = c("sp_code", "confidence"),
   delim = ";"
 )
 
-fred <- hawk_data |> 
-  unite(date_time, c("date", "time"), sep = "")
+# Create a POSIX time stamp for each recording based on date and time
+# that each new audio file was started.
+tmp_data <- tmp_data |> 
+  unite(date_time, c("date", "file_start_time"), sep = "") |> 
+  mutate(file_start_time = ymd_hms(date_time, tz = "America/Chicago"))
 
-x <-  fred |> 
-  mutate(freddy = ymd_hms(date_time, tz = "America/Chicago"))
+# Calculate the relative start time and duration for each detection. This
+# should make it easier to find in the audio file when looking at 
+# spectrograms.
 
-# strptime(fred$date_time, format = "%Y%m%d%H%M%S", tz = "America/Chicago")
+# Save the result in the final data set.
+hawk_data <- tmp_data |> 
+  mutate(detection_start_time = file_start_time + as.period(start_time),
+         detection_end_time = file_start_time + as.period(end_time),
+         detection_duration = seconds(interval(start = detection_start_time, end = detection_end_time)))
+
+
 
 
 hawk_summary <- hawk_data |> 
@@ -96,15 +106,7 @@ hawk_summary <- hawk_data |>
 # Add species names to summary file
 hawk_summary <- left_join(hawk_summary, spp_codes, by = "sp_code")
 
-hawk_data |> 
-  mutate(date = ymd(date))
-
-strptime(hawk_data$time, format = "%H%M%S")
-
-x <- "20260225054800"
-
-strptime(x, format = "%Y%m%d%H%M%S")
 
 
-hawk
+
 
