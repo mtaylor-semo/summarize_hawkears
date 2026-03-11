@@ -2,15 +2,18 @@ library(suncalc)
 library(lubridate)
 library(tidyverse)
 
+# Constants
+time_zone <- "Etc/GMT+6"
+
 # First attempt at getting sunrise and sunset times. Note that
 # 'Etc/GMT+6' is Olson Code for central standard time. The recorders
 # will be kept in standard time, never daylight savings time.
-fred <- getSunlightTimes(
-  date = as.Date("2026-03-11"), 
-  lat = 37.132025, 
-  lon = -89.461307,
-  tz = "Etc/GMT+6", 
-  keep = c("sunrise", "sunset"))
+# fred <- getSunlightTimes(
+#   date = as.Date("2026-03-11"), 
+#   lat = 37.132025, 
+#   lon = -89.461307,
+#   tz = tzone, 
+#   keep = c("sunrise", "sunset"))
 
 
 # Create a tibble with date, sunrise, and sunset for Miller Reserve.
@@ -32,5 +35,5 @@ longitude = -89.461307
 sun_df <- tibble(date = Dates)
 
 sun_df <- sun_df |> 
-  mutate(sunrise = getSunlightTimes(Dates,latitude,longitude,tz = "Etc/GMT+6")$sunrise,
-         sunset = getSunlightTimes(Dates,latitude,longitude,tz = "Etc/GMT+6")$sunset)
+  mutate(sunrise = getSunlightTimes(Dates,latitude,longitude,tz = time_zone)$sunrise,
+         sunset = getSunlightTimes(Dates,latitude,longitude,tz = time_zone)$sunset)
