@@ -29,7 +29,7 @@ longitude = -89.461307
 #   mutate(sunrise = getSunlightTimes(Dates,latitude,longitude,tz = "Etc/GMT+6")$sunrise,
 #          sunset = getSunlightTimes(Dates,latitude,longitude,tz = "Etc/GMT+6")$sunset)  
 
-sun_df <- as_tibble(Dates)
+sun_df <- tibble(date = Dates)
 
 sun_df <- sun_df |> 
   mutate(sunrise = getSunlightTimes(Dates,latitude,longitude,tz = "Etc/GMT+6")$sunrise,
