@@ -139,6 +139,8 @@ hawk_summary <- hawk_data |>
     min_conf = min(confidence),
     max_conf = max(confidence),
     N = n(),
+    earliest_time = min(time_since_sunrise),
+    latest_time = max(time_since_sunrise),
     .groups = "keep")
 
 # Add species names to summary file
@@ -147,4 +149,26 @@ hawk_summary <- left_join(hawk_summary, spp_codes, by = "sp_code")
 
 
 
+# Basic Plots -------------------------------------------------------------
 
+# Dumbbell plot for first to last detection
+hawk_summary |>
+  filter(recorder == "MILLER") |>
+  ggplot() +
+  geom_segment(aes(x = earliest_time, xend = latest_time, y = sp_code)) +
+  geom_point(aes(x = earliest_time, y = sp_code)) +
+  geom_point(aes(x = latest_time, y = sp_code)) +
+  scale_x_time() +
+  theme_minimal()
+
+# Scatter plot of detection time by species. So far, this may be the most useful.
+hawk_data |> 
+  ggplot() +
+  geom_vline(xintercept = 0, color = "gray50") +
+  geom_point(aes(x = time_since_sunrise,
+                 y = sp_code,
+             shape = recorder,
+             color = recorder)) +
+  theme_minimal()
+
+             
