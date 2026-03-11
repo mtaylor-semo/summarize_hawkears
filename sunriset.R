@@ -13,6 +13,10 @@ fred <- getSunlightTimes(
   keep = c("sunrise", "sunset"))
 
 
+# Create a tibble with date, sunrise, and sunset for Miller Reserve.
+# NOTE: The times for New Madrid (Prairie) recorder are probably close enough
+# but determine if need a separate set for that recorder in the winter.
+
 # Modified from https://stackoverflow.com/a/68550338/3832941
 start.date = "20260201"; end.date = "20260315"
 Dates <- seq(ymd(start.date),ymd(end.date), by = "days")
