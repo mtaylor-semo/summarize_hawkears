@@ -171,24 +171,33 @@ hawk_data <- hawk_data |>
     )
 
 hawk_summary <- hawk_data |> 
-  group_by(recorder, sp_code) |> 
+  group_by(recorder, date, sp_code) |> 
   summarise(
     min_conf = min(confidence),
     max_conf = max(confidence),
     N = n(),
-    earliest_time = min(time_since_sunrise),
-    latest_time = max(time_since_sunrise),
+    earliest_time = min(time_since_sunrise, na.rm = TRUE),
+    latest_time = max(time_since_sunrise, na.rm = TRUE),
     .groups = "keep")
 
 # Add species names to summary file
 hawk_summary <- left_join(hawk_summary, spp_codes, by = "sp_code")
 
 
+hawk_summary |> 
+  filter(recorder == "PRAIRIE" & N > 10) |> 
+  ggplot() +
+  geom_point(aes(x = date,
+                 y = log10(N))) +
+  facet_wrap(~sp_code) +
+  scale_x_date(date_breaks = "weeks")
+
 
 
 # Basic Plots -------------------------------------------------------------
 
-# Dumbbell plot for first to last detection
+# Dumbbell plot for first to last detection. 
+# MEH
 hawk_summary |>
   ggplot() +
   geom_segment(aes(x = earliest_time, xend = latest_time, y = sp_code)) +
