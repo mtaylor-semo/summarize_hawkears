@@ -19,6 +19,15 @@ time_zone = "Etc/GMT+6"
 
 # File inputs -------------------------------------------------------------
 
+# Import species codes
+
+spp_codes <- read_delim(
+  "data/classes.txt",
+  delim = ",",
+  col_names = c("species", "sp_code"),
+  comment = "#")
+
+
 # Import data files
 files <- fs::dir_ls(path = "data", glob = "*HawkEars.txt")
 
@@ -31,14 +40,6 @@ tmp_data <- read_tsv(
     "end_time",
     "code_confidence"
   ))
-
-# Import species codes
-
-spp_codes <- read_delim(
-  "data/classes.txt",
-  delim = ",",
-  col_names = c("species", "sp_code"),
-  comment = "#")
 
 
 
@@ -118,11 +119,47 @@ hawk_data <- left_join(
 )
 
 
-rm(tmp_data)
+# rm(tmp_data)
 
-hawk_data <- hawk_data |> 
-  mutate(rise = hms::as_hms(sunrise),
-         set = hms::as_hms(sunset))
+hawk_data <- hawk_data |>
+  mutate(
+    rise = hms::as_hms(sunrise),
+    set = hms::as_hms(sunset)
+  )
+
+hawk_data <- hawk_data |>
+  mutate(
+    morning_evening = if_else(
+      hms::as_hms(file_start_time) < hms::as_hms("12:00:00"),
+      "morning", "evening"
+    )
+  )
+
+hawk1 <- hawk_data |> 
+  filter(morning_evening == "morning") |> 
+  mutate(
+    time_since_sunrise = difftime(
+      time1 = detection_start_time,
+      time2 = sunrise,
+      tz = time_zone,
+      units = "mins"),
+    time_since_sunset = NA
+  )
+
+hawk2 <- hawk_data |> 
+  filter(morning_evening == "evening") |> 
+  mutate(
+    time_since_sunset = difftime(
+      time1 = detection_start_time,
+      time2 = sunset,
+      tz = time_zone,
+      units = "mins"),
+    time_since_sunrise = NA
+  )
+
+hawk_data <- bind_rows(hawk1,hawk2)
+
+rm(hawk1,hawk2)
 
 hawk_data <- hawk_data |>
   mutate(
@@ -153,7 +190,6 @@ hawk_summary <- left_join(hawk_summary, spp_codes, by = "sp_code")
 
 # Dumbbell plot for first to last detection
 hawk_summary |>
-  filter(recorder == "MILLER") |>
   ggplot() +
   geom_segment(aes(x = earliest_time, xend = latest_time, y = sp_code)) +
   geom_point(aes(x = earliest_time, y = sp_code)) +
@@ -163,12 +199,26 @@ hawk_summary |>
 
 # Scatter plot of detection time by species. So far, this may be the most useful.
 hawk_data |> 
+  filter(recorder == "PRAIRIE", morning_evening == "morning") |>
   ggplot() +
   geom_vline(xintercept = 0, color = "gray50") +
   geom_point(aes(x = time_since_sunrise,
                  y = sp_code,
              shape = recorder,
              color = recorder)) +
-  theme_minimal()
+  theme_minimal() +
+  scale_x_continuous(breaks = c(-60,-30,0,30,60,90,120,150,180))
 
-             
+
+# Scatter plot of detection time by species. So far, this may be the most useful.
+hawk_data |> 
+  filter(recorder == "MILLER", morning_evening == "evening") |>
+  ggplot() +
+  geom_vline(xintercept = 0, color = "gray50") +
+  geom_point(aes(x = time_since_sunset,
+                 y = sp_code,
+                 shape = recorder,
+                 color = recorder)) +
+  theme_minimal() +
+  scale_x_continuous(breaks = c(-120,-90,-60,-30,0,30,69))
+
