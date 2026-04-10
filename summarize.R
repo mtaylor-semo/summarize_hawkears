@@ -29,7 +29,8 @@ spp_codes <- read_delim(
 
 
 # Import data files
-files <- fs::dir_ls(path = "data", glob = "*HawkEars.txt")
+files <- fs::dir_ls(path = "data/brenda", glob = "*HawkEars.txt")
+files <- files[file.size(files) > 0] # Skip empty files with no detections
 
 # Use tmp_data for initial wrangling
 tmp_data <- read_tsv(
@@ -68,11 +69,12 @@ tmp_data <- tmp_data |>
     recorder,
     delim = "/",
     names = c(
-      "delete",
+      "delete1",
+      "delete2",
       "recorder"
     )
   ) |> 
-  select(-delete)
+  select(-c(delete1,delete2))
 
 # Separate the species code from the confidence value
 tmp_data <- tmp_data |> separate_wider_delim(code_confidence,
@@ -180,12 +182,24 @@ hawk_summary <- hawk_data |>
     latest_time = max(time_since_sunrise, na.rm = TRUE),
     .groups = "keep")
 
+# Playing with Brenda data
+overall_summary <- hawk_data |> 
+  group_by(recorder, sp_code) |> 
+  summarise(
+    min_conf = min(confidence),
+    max_conf = max(confidence),
+    N = n(),
+    earliest_time = min(time_since_sunrise, na.rm = TRUE),
+    latest_time = max(time_since_sunrise, na.rm = TRUE),
+    .groups = "keep") #|> 
+  #filter(N >= 10)
+
 # Add species names to summary file
 hawk_summary <- left_join(hawk_summary, spp_codes, by = "sp_code")
 
 
 hawk_summary |> 
-  filter(recorder == "PRAIRIE" & N > 10) |> 
+  filter(recorder == "BRENDA" & N > 10) |> 
   ggplot() +
   geom_point(aes(x = date,
                  y = log10(N))) +
