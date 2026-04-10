@@ -37,3 +37,4 @@ sun_df <- tibble(date = Dates)
 sun_df <- sun_df |> 
   mutate(sunrise = getSunlightTimes(Dates,latitude,longitude,tz = time_zone)$sunrise,
          sunset = getSunlightTimes(Dates,latitude,longitude,tz = time_zone)$sunset)
+
